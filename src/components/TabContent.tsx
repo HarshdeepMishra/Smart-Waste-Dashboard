@@ -13,6 +13,7 @@ interface TabContentProps {
   products: Product[];
   onProductClick: (product: Product) => void;
   storeName: string;
+  storeId?: string;
   compactView?: boolean;
   darkMode?: boolean;
   alertThresholds?: {
@@ -28,6 +29,7 @@ const TabContent: React.FC<TabContentProps> = ({
   products, 
   onProductClick, 
   storeName,
+  storeId,
   compactView = false,
   darkMode = false,
   alertThresholds = { criticalThreshold: 80, warningThreshold: 60, advanceNotice: 2 }
@@ -64,6 +66,8 @@ const TabContent: React.FC<TabContentProps> = ({
             <AnalyticsSection 
               compactView={compactView}
               darkMode={darkMode}
+              products={products}
+              storeId={storeId}
             />
           </>
         );
@@ -106,9 +110,10 @@ const TabContent: React.FC<TabContentProps> = ({
       case 'Analytics':
         return (
           <InsightsLab
-            stats={stats}
             products={products}
             darkMode={darkMode}
+            storeId={storeId}
+            storeName={storeName}
           />
         );
       

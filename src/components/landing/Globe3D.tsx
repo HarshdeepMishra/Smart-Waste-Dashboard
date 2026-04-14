@@ -126,7 +126,11 @@ const Globe3D: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-0 bg-[#020617]">
-      <Canvas dpr={[1, 2]} onCreated={() => setReady(true)}>
+      <Canvas 
+        dpr={[1, 2]} 
+        onCreated={() => setReady(true)}
+        gl={{ antialias: false, alpha: true, stencil: false, depth: true }}
+      >
         <PerspectiveCamera makeDefault position={[0, 0, 3]} fov={45} />
         <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={1} />
         

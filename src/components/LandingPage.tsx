@@ -1,5 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import { 
+  Leaf, Mail, Lock, User, Eye, ArrowRight, Monitor, Globe, ShieldCheck, Cpu
+} from 'lucide-react';
+import { api } from '../services/api';
+import Globe3D from './landing/Globe3D';
 
 const RevealText = ({ text, className }: { text: string; className?: string }) => {
   const words = text.split(' ');
@@ -21,12 +26,6 @@ const RevealText = ({ text, className }: { text: string; className?: string }) =
     </span>
   );
 };
-import { 
-  Leaf, Mail, Lock, User, Eye, EyeOff, ArrowRight, Zap, 
-  ChevronDown, AlertTriangle, Monitor, Globe, ShieldCheck, Cpu
-} from 'lucide-react';
-import { api } from '../services/api';
-import Globe3D from './landing/Globe3D';
 
 interface LandingPageProps {
   onAuth: (user: { name: string; email: string; role: string; token: string }) => void;
@@ -36,7 +35,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAuth }) => {
   const [mode, setMode] = useState<'landing' | 'signin' | 'signup'>('landing');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [form, setForm] = useState({ name: '', email: '', password: '' });
 
   const { scrollYProgress } = useScroll();
@@ -45,18 +44,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAuth }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setLoginError('');
     setLoading(true);
     try {
       const result = mode === 'signin'
         ? await api.auth.signin(form.email, form.password)
         : await api.auth.signup(form.name, form.email, form.password);
-      if (!result) { setError('Connection failure.'); setLoading(false); return; }
-      if (result.error) { setError(result.error); setLoading(false); return; }
+      if (!result) { setLoginError('Connection failure.'); setLoading(false); return; }
+      if (result.error) { setLoginError(result.error); setLoading(false); return; }
       localStorage.setItem('ecotrack_token', result.token);
       localStorage.setItem('ecotrack_user', JSON.stringify(result.user));
       onAuth({ ...result.user, token: result.token });
-    } catch (err) { setError('Error occurred.'); }
+    } catch { setLoginError('Error occurred.'); }
     setLoading(false);
   };
 
@@ -199,6 +198,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAuth }) => {
               <div className="bg-[#020617] rounded-[2.8rem] p-12 overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-mint/20" />
                 <h2 className="text-4xl font-black text-white text-center mb-16 tracking-tighter italic uppercase">{mode === 'signin' ? 'AUTHORIZE' : 'RECRUIT'}</h2>
+                
+                {loginError && (
+                  <div className="mb-8 p-4 rounded-[1.5rem] bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest text-center">
+                    {loginError}
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-8">
                   {mode === 'signup' && (
                     <div className="relative group">

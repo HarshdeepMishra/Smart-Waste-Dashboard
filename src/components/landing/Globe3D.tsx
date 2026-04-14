@@ -1,9 +1,9 @@
-import React, { useRef, useMemo, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import React, { useRef, useMemo } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { 
-  OrbitControls, Sphere, Stars, Float, PerspectiveCamera, 
-  MeshDistortMaterial, Trail, QuadraticBezierCurve3
+  OrbitControls, Sphere, Stars, Float, PerspectiveCamera
 } from '@react-three/drei';
+
 import { EffectComposer, Bloom, Scanline, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
@@ -49,7 +49,7 @@ const Earth = () => {
   const meshRef = useRef<THREE.Mesh>(null);
   const cloudRef = useRef<THREE.Mesh>(null);
   
-  useFrame((state) => {
+  useFrame(() => {
     if (meshRef.current) meshRef.current.rotation.y += 0.001;
     if (cloudRef.current) cloudRef.current.rotation.y += 0.0012;
   });
@@ -89,7 +89,7 @@ const Earth = () => {
       </Sphere>
 
       {/* Indian Partners Pulse Points */}
-      {CITY_COORDS.map((city, i) => (
+      {CITY_COORDS.map((city) => (
         <mesh key={city.name} position={latLonToVector3(city.lat, city.lon, 1.01)}>
           <sphereGeometry args={[0.015, 16, 16]} />
           <meshBasicMaterial color="#10b981" />

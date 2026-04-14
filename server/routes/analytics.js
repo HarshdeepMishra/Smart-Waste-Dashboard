@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 const Action = require('../models/Action');
+const UserActivity = require('../models/UserActivity');
 
 // GET /api/analytics/:storeId - Full analytics data for a store
 router.get('/:storeId', async (req, res) => {
@@ -139,6 +140,31 @@ router.get('/network/comparison', async (req, res) => {
     res.json(comparison);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/analytics/activity/log - Log a general user activity
+router.post('/activity/log', async (req, res) => {
+  try {
+    const { userId, userName, action, details, path } = req.body;
+    
+    if (!action) {
+      return res.status(400).json({ error: 'Action is required' });
+    }
+
+    const activity = await UserActivity.create({
+      userId,
+      userName: userName || 'Unknown User',
+      action,
+      details: details || {},
+      path: path || req.get('Referrer'),
+      ip: req.ip
+    });
+
+    res.json({ message: 'Activity logged successfully', activityId: activity._id });
+  } catch (error) {
+    console.error('Activity Log Error:', error);
+    res.status(500).json({ error: 'Failed to log activity' });
   }
 });
 

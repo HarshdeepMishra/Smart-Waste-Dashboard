@@ -10,6 +10,7 @@ interface AIAssistantProps {
   onProductClick: (product: Product) => void;
   darkMode?: boolean;
   storeName?: string;
+  user: { name: string; email: string; role: string } | null;
 }
 
 interface Message {
@@ -24,7 +25,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   stats,
   onProductClick,
   darkMode = false,
-  storeName = 'Your Store'
+  storeName = 'Your Store',
+  user
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -72,6 +74,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     setMessages(prev => [...prev, userMessage, loadingMessage]);
     setInputValue('');
     setIsLoading(true);
+
+    // Track AI query activity
+    if (user) {
+      api.analytics.logActivity({
+        userId: user.email,
+        userName: user.name,
+        action: 'AI_QUERY',
+        details: { query, storeName, timestamp: new Date() }
+      });
+    }
 
     try {
       // Try real Groq API via backend

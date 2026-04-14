@@ -35,10 +35,32 @@ function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'warning'; isVisible: boolean }>({ message: '', type: 'info', isVisible: false });
 
+  // Activity Logging Helper
+  const logUserAction = (action: string, details: any = {}) => {
+    if (!authUser) return;
+    api.analytics.logActivity({
+      userId: authUser.email,
+      userName: authUser.name,
+      action,
+      details,
+      path: window.location.pathname
+    });
+  };
+
   // Auth handlers
-  const handleAuth = (user: AuthUser) => setAuthUser(user);
+  const handleAuth = (user: AuthUser) => {
+    setAuthUser(user);
+    // Explicitly log sign in (using user object directly as authUser might not be updated yet)
+    api.analytics.logActivity({
+      userId: user.email,
+      userName: user.name,
+      action: 'SIGN_IN',
+      details: { timestamp: new Date() }
+    });
+  };
 
   const handleSignOut = () => {
+    logUserAction('SIGN_OUT');
     localStorage.removeItem('ecotrack_token');
     localStorage.removeItem('ecotrack_user');
     setAuthUser(null);
@@ -57,8 +79,14 @@ function App() {
     if (data) {
       setCurrentStoreData(data);
       setToast({ message: `Switched to ${selectedStore}`, type: 'info', isVisible: true });
+      logUserAction('STORE_SWITCH', { storeId: data.id, storeName: selectedStore });
     }
   }, [selectedStore]);
+
+  // Tab change
+  useEffect(() => {
+    logUserAction('NAVIGATE', { tabName: activeTab });
+  }, [activeTab]);
 
   // Dark mode
   useEffect(() => {
@@ -267,16 +295,8 @@ function App() {
         <div className="container mx-auto px-8 py-8 max-w-7xl">
           <div className="mb-8">
             <h1 className={`text-3xl font-bold mb-2 ${currentStoreData.settings.display.darkMode ? 'text-white' : 'text-slate-900'}`}>
-              {activeTab === 'Dashboard' ? 'Command Center' : activeTab === 'Alerts' ? 'Risk Monitor' : activeTab === 'Analytics' ? 'Insights Lab' : 'AI Assistant'}
+              {activeTab === 'Dashboard' ? 'Command Center' : activeTab === 'Alerts' ? 'Risk Monitor' : (activeTab === 'Analytics' || activeTab === 'Insights') ? 'Insights Lab' : 'AI Assistant'}
             </h1>
-            <p className={`text-sm ${currentStoreData.settings.display.darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-              {selectedStore} • Last updated: {currentTime.toLocaleTimeString()}
-              {currentStoreData.settings.display.autoRefresh && (
-                <span className={`ml-2 text-xs ${currentStoreData.settings.display.darkMode ? 'text-green-400' : 'text-green-600'}`}>
-                  Auto-refresh: {currentStoreData.settings.display.refreshInterval}s
-                </span>
-              )}
-            </p>
           </div>
 
           {activeTab === 'Dashboard' && (
@@ -298,6 +318,17 @@ function App() {
               onProductClick={p => setSelectedProduct(p)}
               darkMode={currentStoreData.settings.display.darkMode}
               alertThresholds={currentStoreData.settings.alerts}
+            />
+          )}
+
+          {activeTab === 'AI' && (
+            <AIAssistant
+              products={currentStoreData.products}
+              stats={currentStoreData.stats}
+              onProductClick={p => setSelectedProduct(p)}
+              darkMode={currentStoreData.settings.display.darkMode}
+              storeName={selectedStore}
+              user={authUser}
             />
           )}
 

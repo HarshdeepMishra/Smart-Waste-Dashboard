@@ -90,6 +90,13 @@ export const api = {
       destinationStore?: string;
     }) => apiFetch('/analytics/action', { method: 'POST', body: JSON.stringify(data) }),
     getNetworkComparison: () => apiFetch('/analytics/network/comparison'),
+    logActivity: (data: {
+      userId?: string;
+      userName?: string;
+      action: string;
+      details?: any;
+      path?: string;
+    }) => apiFetch('/analytics/activity/log', { method: 'POST', body: JSON.stringify(data) }),
   },
 };
 

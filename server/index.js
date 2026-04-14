@@ -13,28 +13,26 @@ const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS — allow localhost in dev + both Render URLs in production
+// CORS — allow localhost in dev + production frontend on Render
 const allowedOrigins = [
-  // Local development
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:4173',
-  // Production — Render URLs (hardcoded for reliability)
-  'https://ecotrack-ai-frontend.onrender.com',
-  'https://smart-waste-dashboard-fw7r.onrender.com',
-  // Dynamic env var override (set FRONTEND_URL on Render if URL changes)
-  process.env.FRONTEND_URL,
+  'https://ecotrack-ai-frontend.onrender.com', // production frontend
+  process.env.FRONTEND_URL,                    // override via env var
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // curl, health checks
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    console.warn(`CORS blocked: ${origin}`);
-    callback(new Error(`CORS: origin ${origin} not allowed`));
+    if (!origin) return callback(null, true); // allow curl / health checks
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 }));
+
 app.use(express.json({ limit: '10mb' }));
 
 // Connect to MongoDB Atlas

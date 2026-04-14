@@ -14,16 +14,21 @@ async function apiFetch(path: string, options?: RequestInit) {
       },
       ...options,
     });
+
+    const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+
     if (!res.ok) {
-      const errBody = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-      throw new Error(errBody.error || `HTTP ${res.status}`);
+      // Return the error body so callers can show the message (e.g. "Incorrect password")
+      return data;
     }
-    return await res.json();
+    return data;
   } catch (err) {
+    // Only returns null on a true network failure (no internet, DNS failure, etc.)
     console.warn(`API call failed [${path}]:`, err);
     return null;
   }
 }
+
 
 export const api = {
   // Health

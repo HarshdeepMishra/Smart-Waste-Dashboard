@@ -13,22 +13,25 @@ const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS — allow localhost in dev + Render/Vercel in production
+// CORS — allow localhost in dev + both Render URLs in production
 const allowedOrigins = [
+  // Local development
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:4173',
-  process.env.FRONTEND_URL, // Set this on Render to your Vercel URL
+  // Production — Render URLs (hardcoded for reliability)
+  'https://ecotrack-ai-frontend.onrender.com',
+  'https://smart-waste-dashboard-fw7r.onrender.com',
+  // Dynamic env var override (set FRONTEND_URL on Render if URL changes)
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Render health checks)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    callback(new Error('Not allowed by CORS'));
+    if (!origin) return callback(null, true); // curl, health checks
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn(`CORS blocked: ${origin}`);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
 }));

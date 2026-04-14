@@ -1,5 +1,8 @@
-// API base URL: set VITE_API_URL in .env for local dev, or in Vercel env vars for production
+// API_BASE comes from VITE_API_URL env var — set in Render environment variables
+// Local dev: create .env with VITE_API_URL=http://localhost:3001/api
+// Production: set VITE_API_URL=https://smart-waste-dashboard-fw7r.onrender.com/api in Render
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
 
 async function apiFetch(path: string, options?: RequestInit) {
   try {

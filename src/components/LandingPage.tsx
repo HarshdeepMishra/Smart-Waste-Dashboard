@@ -17,36 +17,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ onAuth }) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
     try {
-      const endpoint = mode === 'signin' ? '/auth/signin' : '/auth/signup';
-      const body = mode === 'signin'
-        ? { email: form.email, password: form.password }
-        : { name: form.name, email: form.email, password: form.password };
+      const result = mode === 'signin'
+        ? await api.auth.signin(form.email, form.password)
+        : await api.auth.signup(form.name, form.email, form.password);
 
-      const result = await fetch(`http://localhost:3001/api${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }).then(r => r.json());
-
-      if (result.error) { setError(result.error); setLoading(false); return; }
+      if (!result) {
+        setError('Unable to reach server. Please try again.');
+        setLoading(false);
+        return;
+      }
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
 
       localStorage.setItem('ecotrack_token', result.token);
       localStorage.setItem('ecotrack_user', JSON.stringify(result.user));
       onAuth({ ...result.user, token: result.token });
-    } catch {
-      // Offline fallback — allow demo login
-      if (form.email === 'admin@ecotrack.in' || form.password.length >= 6) {
-        const demoUser = { name: form.name || 'Admin Manager', email: form.email, role: 'admin', token: 'demo_token' };
-        localStorage.setItem('ecotrack_token', 'demo_token');
-        localStorage.setItem('ecotrack_user', JSON.stringify(demoUser));
-        onAuth(demoUser);
-      } else {
-        setError('Backend offline. Use admin@ecotrack.in with any 6+ char password for demo.');
-      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
     }
+
     setLoading(false);
   };
+
 
   const features = [
     { icon: Zap, title: 'Real-Time Risk Alerts', desc: 'AI-powered alerts for expiring products across 5 partner stores', color: 'text-yellow-400' },
